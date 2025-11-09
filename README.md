@@ -302,6 +302,648 @@ DB_CONFIG = {
 
 <div align="center">
 
+# 🏗️ Arquitectura del Sistema
+
+## Sistema de Gestión Universitaria - POO Python + XAMPP
+
+</div>
+
+---
+
+## 📐 Arquitectura General en Capas
+
+```mermaid
+graph TB
+    subgraph "🎨 Capa de Presentación"
+        UI[Interface de Usuario<br/>main.py]
+        CLI[Command Line Interface]
+    end
+    
+    subgraph "🧠 Capa de Lógica de Negocio"
+        subgraph "👥 Módulo Usuarios"
+            U[Usuario<br/><<abstract>>]
+            E[Estudiante]
+            C[Conductor]
+        end
+        
+        subgraph "🛒 Módulo Comercio"
+            PED[Pedido]
+            PROD[Producto]
+        end
+        
+        subgraph "📚 Módulo Académico"
+            ASG[Asignatura]
+            HOR[Horario]
+        end
+    end
+    
+    subgraph "💾 Capa de Acceso a Datos"
+        subgraph "🗄️ DAOs"
+            EDAO[EstudianteDAO]
+            PDAO[PedidoDAO]
+            ADAO[AsignaturaDAO]
+        end
+        
+        DBC[DatabaseConnection<br/><<Singleton>>]
+    end
+    
+    subgraph "🗃️ Capa de Persistencia"
+        DB[(MySQL Database<br/>XAMPP Server)]
+    end
+    
+    UI --> E
+    UI --> C
+    UI --> PED
+    CLI --> U
+    
+    E -.-> EDAO
+    PED -.-> PDAO
+    ASG -.-> ADAO
+    
+    EDAO --> DBC
+    PDAO --> DBC
+    ADAO --> DBC
+    
+    DBC --> DB
+    
+    U --> E
+    U --> C
+    
+    E --> ASG
+    E --> PED
+    PED --> PROD
+    HOR --> ASG
+    
+    style UI fill:#a855f7,stroke:#7e22ce,color:#fff
+    style E fill:#3b82f6,stroke:#1e40af,color:#fff
+    style C fill:#3b82f6,stroke:#1e40af,color:#fff
+    style PED fill:#10b981,stroke:#059669,color:#fff
+    style ASG fill:#f59e0b,stroke:#d97706,color:#fff
+    style DBC fill:#ef4444,stroke:#dc2626,color:#fff
+    style DB fill:#6366f1,stroke:#4f46e5,color:#fff
+```
+
+---
+
+## 🔄 Arquitectura MVC Adaptada
+
+```mermaid
+graph LR
+    subgraph "📱 View Layer"
+        V1[main.py]
+        V2[CLI Interface]
+        V3[User Inputs]
+    end
+    
+    subgraph "🎮 Controller Layer"
+        C1[Business Logic]
+        C2[Validators]
+        C3[Handlers]
+    end
+    
+    subgraph "📦 Model Layer"
+        M1[Domain Models]
+        M2[Entities]
+        M3[Value Objects]
+    end
+    
+    subgraph "💾 Data Layer"
+        D1[DAOs]
+        D2[Connection Pool]
+        D3[MySQL DB]
+    end
+    
+    V1 --> C1
+    V2 --> C2
+    V3 --> C3
+    
+    C1 --> M1
+    C2 --> M2
+    C3 --> M3
+    
+    M1 --> D1
+    M2 --> D1
+    M3 --> D1
+    
+    D1 --> D2
+    D2 --> D3
+    
+    style V1 fill:#a855f7
+    style C1 fill:#3b82f6
+    style M1 fill:#10b981
+    style D1 fill:#f59e0b
+```
+
+---
+
+## 🧩 Diagrama de Componentes
+
+```mermaid
+graph TB
+    subgraph "Sistema de Gestión Universitaria"
+        subgraph "🎯 Core Components"
+            APP[Application<br/>Entry Point]
+            CONF[Configuration<br/>Manager]
+        end
+        
+        subgraph "👥 User Management"
+            UM[User Module]
+            EST[Student Component]
+            COND[Driver Component]
+        end
+        
+        subgraph "🛒 Commerce System"
+            CS[Commerce Module]
+            CART[Shopping Cart]
+            ORDER[Order Processing]
+        end
+        
+        subgraph "📚 Academic System"
+            AS[Academic Module]
+            SUBJ[Subject Management]
+            SCHED[Schedule Manager]
+        end
+        
+        subgraph "💾 Data Access Layer"
+            DAO[DAO Factory]
+            CONN[Connection Manager]
+            CACHE[Cache Layer]
+        end
+        
+        subgraph "🔧 Utilities"
+            VALID[Validators]
+            LOG[Logger]
+            UTILS[Helpers]
+        end
+    end
+    
+    subgraph "🗄️ External Systems"
+        MYSQL[(MySQL<br/>Database)]
+        XAMPP[XAMPP<br/>Server]
+    end
+    
+    APP --> UM
+    APP --> CS
+    APP --> AS
+    APP --> CONF
+    
+    UM --> EST
+    UM --> COND
+    
+    CS --> CART
+    CS --> ORDER
+    
+    AS --> SUBJ
+    AS --> SCHED
+    
+    EST --> DAO
+    COND --> DAO
+    CART --> DAO
+    ORDER --> DAO
+    SUBJ --> DAO
+    SCHED --> DAO
+    
+    DAO --> CONN
+    CONN --> CACHE
+    CONN --> MYSQL
+    
+    MYSQL --> XAMPP
+    
+    VALID -.-> EST
+    VALID -.-> COND
+    VALID -.-> ORDER
+    
+    LOG -.-> APP
+    UTILS -.-> UM
+    UTILS -.-> CS
+    UTILS -.-> AS
+    
+    style APP fill:#a855f7,stroke:#7e22ce,color:#fff
+    style UM fill:#3b82f6,stroke:#1e40af,color:#fff
+    style CS fill:#10b981,stroke:#059669,color:#fff
+    style AS fill:#f59e0b,stroke:#d97706,color:#fff
+    style DAO fill:#ef4444,stroke:#dc2626,color:#fff
+    style MYSQL fill:#6366f1,stroke:#4f46e5,color:#fff
+```
+
+---
+
+## 🔀 Flujo de Datos Principal
+
+```mermaid
+flowchart TD
+    START([👤 Usuario]) --> INPUT[📝 Ingresa Datos]
+    INPUT --> VALID{✅ Validación}
+    
+    VALID -->|❌ Error| ERROR[⚠️ Mostrar Error]
+    ERROR --> INPUT
+    
+    VALID -->|✓ OK| PROCESS[⚙️ Procesar Lógica<br/>de Negocio]
+    
+    PROCESS --> MODEL[📦 Crear/Actualizar<br/>Modelo]
+    MODEL --> DAO[💾 Llamar DAO]
+    
+    DAO --> CHECK{🔍 Verificar<br/>Conexión}
+    CHECK -->|❌ No conectado| CONNECT[🔌 Conectar a BD]
+    CONNECT --> CHECK
+    
+    CHECK -->|✓ Conectado| QUERY[📊 Ejecutar Query SQL]
+    QUERY --> RESULT{📈 Resultado}
+    
+    RESULT -->|❌ Error SQL| ROLLBACK[↩️ Rollback]
+    ROLLBACK --> ERROR2[⚠️ Error BD]
+    ERROR2 --> END1([🔚 Fin con Error])
+    
+    RESULT -->|✓ Éxito| COMMIT[✅ Commit]
+    COMMIT --> RESPONSE[📤 Preparar Respuesta]
+    RESPONSE --> DISPLAY[🖥️ Mostrar Resultado]
+    DISPLAY --> END2([🎉 Fin Exitoso])
+    
+    style START fill:#a855f7,color:#fff
+    style VALID fill:#3b82f6,color:#fff
+    style PROCESS fill:#10b981,color:#fff
+    style DAO fill:#f59e0b,color:#fff
+    style QUERY fill:#ef4444,color:#fff
+    style END2 fill:#22c55e,color:#fff
+    style END1 fill:#dc2626,color:#fff
+```
+
+---
+
+## 🎯 Patrón DAO en Acción
+
+```mermaid
+sequenceDiagram
+    participant UI as 🖥️ UI/Main
+    participant Model as 📦 Modelo
+    participant DAO as 💾 DAO
+    participant Conn as 🔌 Connection
+    participant DB as 🗄️ MySQL
+    
+    UI->>Model: 1. Crear Objeto
+    activate Model
+    Model-->>UI: 2. Objeto Creado
+    deactivate Model
+    
+    UI->>DAO: 3. insertar(objeto)
+    activate DAO
+    
+    DAO->>Conn: 4. get_connection()
+    activate Conn
+    Conn-->>DAO: 5. Connection
+    deactivate Conn
+    
+    DAO->>DB: 6. INSERT INTO...
+    activate DB
+    DB-->>DAO: 7. ID generado
+    deactivate DB
+    
+    DAO-->>UI: 8. Éxito/Error
+    deactivate DAO
+    
+    Note over UI,DB: 💡 Patrón Singleton asegura<br/>única instancia de conexión
+```
+
+---
+
+## 🏛️ Arquitectura de Clases (Herencia)
+
+```mermaid
+graph TB
+    subgraph "🎭 Jerarquía de Herencia"
+        USUARIO[Usuario<br/><<abstract>><br/>───────────<br/>- id_usuario<br/>- nombre<br/>- email<br/>- telefono<br/>───────────<br/>+ mostrar_info]
+        
+        EST[Estudiante<br/>───────────<br/>- carrera<br/>- anio<br/>- saldo_cuenta<br/>- asignaturas[]<br/>───────────<br/>+ pagar_servicio<br/>+ agregar_saldo<br/>+ inscribir_asignatura]
+        
+        COND[Conductor<br/>───────────<br/>- patente<br/>- tipo_vehiculo<br/>- calificacion<br/>- viajes[]<br/>───────────<br/>+ calcular_tarifa<br/>+ registrar_viaje]
+    end
+    
+    subgraph "🛒 Sistema de Pedidos"
+        PED[Pedido<br/>───────────<br/>- id_pedido<br/>- id_estudiante<br/>- productos[]<br/>- precio_total<br/>- estado<br/>───────────<br/>+ agregar_producto<br/>+ confirmar<br/>+ cambiar_estado]
+        
+        PROD[Producto<br/>───────────<br/>- nombre<br/>- precio<br/>- categoria<br/>───────────<br/>+ __str__]
+    end
+    
+    subgraph "📚 Sistema Académico"
+        ASG[Asignatura<br/>───────────<br/>- id_asignatura<br/>- nombre<br/>- profesor<br/>- creditos<br/>───────────<br/>+ __str__]
+        
+        HOR[Horario<br/>───────────<br/>- id_horario<br/>- dia<br/>- hora_inicio<br/>- hora_fin<br/>- asignaturas[]<br/>───────────<br/>+ agregar_asignatura<br/>+ verificar_choque]
+    end
+    
+    USUARIO -->|hereda| EST
+    USUARIO -->|hereda| COND
+    
+    EST -.->|1:N| PED
+    EST -.->|N:M| ASG
+    PED -.->|1:N| PROD
+    HOR -.->|N:M| ASG
+    
+    style USUARIO fill:#a855f7,stroke:#7e22ce,color:#fff,stroke-width:3px
+    style EST fill:#3b82f6,stroke:#1e40af,color:#fff
+    style COND fill:#3b82f6,stroke:#1e40af,color:#fff
+    style PED fill:#10b981,stroke:#059669,color:#fff
+    style PROD fill:#10b981,stroke:#059669,color:#fff
+    style ASG fill:#f59e0b,stroke:#d97706,color:#fff
+    style HOR fill:#f59e0b,stroke:#d97706,color:#fff
+```
+
+---
+
+## 🔐 Patrón Singleton - DatabaseConnection
+
+```mermaid
+classDiagram
+    class DatabaseConnection {
+        <<Singleton>>
+        - _instance : DatabaseConnection
+        - _connection : MySQLConnection
+        - _host : str
+        - _user : str
+        - _password : str
+        - _database : str
+        ___________
+        - __new__()
+        + connect(host, user, password, database) void
+        + get_connection() MySQLConnection
+        + close() void
+        + execute_query(query, params) list
+        + execute_update(query, params) int
+    }
+    
+    class EstudianteDAO {
+        - db : DatabaseConnection
+        ___________
+        + insertar(estudiante) int
+        + obtener(id) Estudiante
+        + actualizar(estudiante) bool
+        + eliminar(id) bool
+        + listar_todos() list
+    }
+    
+    class PedidoDAO {
+        - db : DatabaseConnection
+        ___________
+        + insertar(pedido) int
+        + obtener(id) Pedido
+        + actualizar(pedido) bool
+        + eliminar(id) bool
+        + obtener_por_estudiante(id) list
+    }
+    
+    class AsignaturaDAO {
+        - db : DatabaseConnection
+        ___________
+        + insertar(asignatura) int
+        + obtener(id) Asignatura
+        + actualizar(asignatura) bool
+        + eliminar(id) bool
+        + inscribir_estudiante(id_est, id_asg) bool
+    }
+    
+    DatabaseConnection "1" <-- "*" EstudianteDAO : usa
+    DatabaseConnection "1" <-- "*" PedidoDAO : usa
+    DatabaseConnection "1" <-- "*" AsignaturaDAO : usa
+    
+    note for DatabaseConnection "Garantiza una única\ninstancia de conexión\nen toda la aplicación"
+```
+
+---
+
+## 🔄 Ciclo de Vida de una Transacción
+
+```mermaid
+stateDiagram-v2
+    [*] --> Inicio
+    
+    Inicio --> ValidarDatos : Usuario ingresa datos
+    
+    ValidarDatos --> CrearModelo : ✅ Datos válidos
+    ValidarDatos --> MostrarError : ❌ Datos inválidos
+    MostrarError --> Inicio
+    
+    CrearModelo --> ObtenerConexion : Modelo creado
+    
+    ObtenerConexion --> VerificarConexion
+    
+    VerificarConexion --> Conectar : No conectado
+    VerificarConexion --> PrepararQuery : Conectado
+    Conectar --> PrepararQuery
+    
+    PrepararQuery --> EjecutarQuery
+    
+    EjecutarQuery --> ValidarResultado
+    
+    ValidarResultado --> Commit : ✅ Éxito
+    ValidarResultado --> Rollback : ❌ Error
+    
+    Commit --> ActualizarModelo
+    Rollback --> ManejarError
+    
+    ActualizarModelo --> MostrarExito
+    ManejarError --> MostrarError
+    
+    MostrarExito --> [*]
+    MostrarError --> [*]
+    
+    note right of ValidarDatos
+        Validación en capa
+        de presentación
+    end note
+    
+    note right of EjecutarQuery
+        Transacción SQL
+        con MySQL
+    end note
+    
+    note right of Commit
+        COMMIT en BD
+        Cambios permanentes
+    end note
+```
+
+---
+
+## 📊 Flujo de Inscripción de Asignatura
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 Usuario
+    participant UI as 🖥️ Interfaz
+    participant E as 🎓 Estudiante
+    participant EDAO as 💾 EstudianteDAO
+    participant ADAO as 💾 AsignaturaDAO
+    participant DB as 🗄️ MySQL
+    
+    U->>UI: Selecciona asignatura
+    UI->>E: obtener_estudiante(id)
+    
+    E->>EDAO: obtener(id_estudiante)
+    EDAO->>DB: SELECT * FROM estudiantes
+    DB-->>EDAO: Datos estudiante
+    EDAO-->>E: Estudiante
+    
+    E->>ADAO: obtener(id_asignatura)
+    ADAO->>DB: SELECT * FROM asignaturas
+    DB-->>ADAO: Datos asignatura
+    ADAO-->>E: Asignatura
+    
+    E->>E: verificar_requisitos()
+    
+    alt ✅ Requisitos cumplidos
+        E->>ADAO: inscribir_estudiante()
+        ADAO->>DB: INSERT INTO estudiante_asignatura
+        DB-->>ADAO: ✓ Inscripción exitosa
+        ADAO-->>E: true
+        E->>E: agregar_a_lista(asignatura)
+        E-->>UI: ✅ Inscripción exitosa
+        UI-->>U: Mostrar confirmación
+    else ❌ Requisitos no cumplidos
+        E-->>UI: ⚠️ Error: Requisitos no cumplidos
+        UI-->>U: Mostrar error
+    end
+```
+
+---
+
+## 🗺️ Diagrama de Despliegue
+
+```mermaid
+graph TB
+    subgraph "💻 Cliente / Desarrollador"
+        DEV[Python Application<br/>main.py]
+        CLI[Command Line<br/>Interface]
+    end
+    
+    subgraph "🖥️ Servidor Local (XAMPP)"
+        subgraph "🌐 Apache Server"
+            PHP[phpMyAdmin<br/>:80]
+        end
+        
+        subgraph "🗄️ MySQL Server"
+            MYSQL[(Database<br/>sistema_universitario<br/>:3306)]
+        end
+    end
+    
+    subgraph "📦 Módulos Python"
+        MODELS[models/<br/>├─ usuario.py<br/>├─ estudiante.py<br/>├─ conductor.py<br/>└─ ...]
+        
+        DAOS[dao/<br/>├─ database_connection.py<br/>├─ estudiante_dao.py<br/>└─ ...]
+    end
+    
+    DEV --> CLI
+    CLI --> MODELS
+    MODELS --> DAOS
+    
+    DAOS -->|mysql-connector-python<br/>Port: 3306| MYSQL
+    
+    PHP -->|Administración| MYSQL
+    
+    DEV -.->|Monitoreo| PHP
+    
+    style DEV fill:#a855f7,color:#fff
+    style MYSQL fill:#4479A1,color:#fff
+    style PHP fill:#FB7A24,color:#fff
+    style MODELS fill:#3b82f6,color:#fff
+    style DAOS fill:#10b981,color:#fff
+```
+
+---
+
+## 🎨 Arquitectura de Paquetes
+
+```mermaid
+graph LR
+    subgraph "📦 Proyecto Root"
+        subgraph "models"
+            M1[usuario.py]
+            M2[estudiante.py]
+            M3[conductor.py]
+            M4[pedido.py]
+            M5[producto.py]
+            M6[asignatura.py]
+            M7[horario.py]
+        end
+        
+        subgraph "dao"
+            D1[database_connection.py]
+            D2[estudiante_dao.py]
+            D3[pedido_dao.py]
+            D4[asignatura_dao.py]
+        end
+        
+        subgraph "sql"
+            S1[schema.sql]
+            S2[data.sql]
+        end
+        
+        subgraph "utils"
+            U1[validators.py]
+            U2[helpers.py]
+        end
+        
+        MAIN[main.py]
+        CONFIG[config.py]
+    end
+    
+    MAIN --> M2
+    MAIN --> M3
+    MAIN --> M4
+    
+    M2 --> M1
+    M3 --> M1
+    M2 --> M6
+    M2 --> M4
+    M4 --> M5
+    M7 --> M6
+    
+    M2 --> D2
+    M4 --> D3
+    M6 --> D4
+    
+    D2 --> D1
+    D3 --> D1
+    D4 --> D1
+    
+    D1 --> CONFIG
+    
+    M2 -.-> U1
+    M3 -.-> U1
+    M4 -.-> U2
+    
+    style MAIN fill:#a855f7,color:#fff
+    style D1 fill:#ef4444,color:#fff
+    style CONFIG fill:#f59e0b,color:#fff
+```
+
+---
+
+<div align="center">
+
+## 📚 Leyenda de Símbolos
+
+| Símbolo | Significado |
+|---------|-------------|
+| `-->` | Dependencia directa / Herencia |
+| `-.->` | Dependencia débil / Uso ocasional |
+| `===>` | Flujo de datos |
+| `subgraph` | Agrupación lógica |
+| `<<abstract>>` | Clase abstracta |
+| `<<Singleton>>` | Patrón Singleton |
+
+</div>
+
+---
+
+<div align="center">
+
+**🏗️ Arquitectura diseñada con principios SOLID y Patrones de Diseño**
+
+*Desarrollado por [Arkanabytes](https://github.com/Arkanabytes)*
+
+</div>
+
+<div align="center">
+
 ## 📁 Estructura del Proyecto
 
 </div>
