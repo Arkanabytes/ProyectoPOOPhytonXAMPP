@@ -609,44 +609,76 @@ sequenceDiagram
 ## 🏛️ Arquitectura de Clases (Herencia)
 
 ```mermaid
-graph TB
-    subgraph "🎭 Jerarquía de Herencia"
-        USUARIO[Usuario<br/><<abstract>><br/>───────────<br/>- id_usuario<br/>- nombre<br/>- email<br/>- telefono<br/>───────────<br/>+ mostrar_info]
-        
-        EST[Estudiante<br/>───────────<br/>- carrera<br/>- anio<br/>- saldo_cuenta<br/>- asignaturas[]<br/>───────────<br/>+ pagar_servicio<br/>+ agregar_saldo<br/>+ inscribir_asignatura]
-        
-        COND[Conductor<br/>───────────<br/>- patente<br/>- tipo_vehiculo<br/>- calificacion<br/>- viajes[]<br/>───────────<br/>+ calcular_tarifa<br/>+ registrar_viaje]
-    end
+classDiagram
+    Usuario <|-- Estudiante
+    Usuario <|-- Conductor
+    Estudiante "1" --> "*" Asignatura : inscribe
+    Estudiante "1" --> "*" Pedido : realiza
+    Pedido "1" --> "*" Producto : contiene
+    Horario "1" --> "*" Asignatura : programa
     
-    subgraph "🛒 Sistema de Pedidos"
-        PED[Pedido<br/>───────────<br/>- id_pedido<br/>- id_estudiante<br/>- productos[]<br/>- precio_total<br/>- estado<br/>───────────<br/>+ agregar_producto<br/>+ confirmar<br/>+ cambiar_estado]
-        
-        PROD[Producto<br/>───────────<br/>- nombre<br/>- precio<br/>- categoria<br/>───────────<br/>+ __str__]
-    end
+    class Usuario {
+        <<abstract>>
+        #int id_usuario
+        #str nombre
+        #str email
+        #str telefono
+        +mostrar_info()*
+    }
     
-    subgraph "📚 Sistema Académico"
-        ASG[Asignatura<br/>───────────<br/>- id_asignatura<br/>- nombre<br/>- profesor<br/>- creditos<br/>───────────<br/>+ __str__]
-        
-        HOR[Horario<br/>───────────<br/>- id_horario<br/>- dia<br/>- hora_inicio<br/>- hora_fin<br/>- asignaturas[]<br/>───────────<br/>+ agregar_asignatura<br/>+ verificar_choque]
-    end
+    class Estudiante {
+        -str carrera
+        -int anio
+        -float saldo_cuenta
+        -list asignaturas
+        +pagar_servicio(monto)
+        +agregar_saldo(monto)
+        +inscribir_asignatura(asignatura)
+    }
     
-    USUARIO -->|hereda| EST
-    USUARIO -->|hereda| COND
+    class Conductor {
+        -str patente
+        -str tipo_vehiculo
+        -float calificacion
+        -list viajes
+        +calcular_tarifa(distancia, tiempo, pasajeros)
+        +registrar_viaje(origen, destino, distancia, tiempo, pasajeros)
+    }
     
-    EST -.->|1:N| PED
-    EST -.->|N:M| ASG
-    PED -.->|1:N| PROD
-    HOR -.->|N:M| ASG
+    class Pedido {
+        -int id_pedido
+        -int id_estudiante
+        -list productos
+        -float precio_total
+        -str estado
+        +agregar_producto(producto, cantidad)
+        +confirmar()
+        +cambiar_estado(nuevo_estado)
+    }
     
-    style USUARIO fill:#a855f7,stroke:#7e22ce,color:#fff,stroke-width:3px
-    style EST fill:#3b82f6,stroke:#1e40af,color:#fff
-    style COND fill:#3b82f6,stroke:#1e40af,color:#fff
-    style PED fill:#10b981,stroke:#059669,color:#fff
-    style PROD fill:#10b981,stroke:#059669,color:#fff
-    style ASG fill:#f59e0b,stroke:#d97706,color:#fff
-    style HOR fill:#f59e0b,stroke:#d97706,color:#fff
+    class Producto {
+        -str nombre
+        -float precio
+        -str categoria
+    }
+    
+    class Asignatura {
+        -int id_asignatura
+        -str nombre
+        -str profesor
+        -int creditos
+    }
+    
+    class Horario {
+        -int id_horario
+        -str dia
+        -time hora_inicio
+        -time hora_fin
+        -list asignaturas
+        +agregar_asignatura(asignatura)
+        +verificar_choque(otro_horario)
+    }
 ```
-
 ---
 
 ## 🔐 Patrón Singleton - DatabaseConnection
