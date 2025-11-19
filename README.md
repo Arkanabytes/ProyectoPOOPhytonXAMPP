@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🎓 Sistema de Gestión Universitaria
-### POO Python + XAMPP + MySQL
+### POO Python + XAMPP + PyMySQL
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=2800&pause=2000&color=A855F7&center=true&vCenter=true&width=940&lines=Sistema+Integral+de+Gesti%C3%B3n+Universitaria;Desarrollado+con+Python+%F0%9F%90%8D;Arquitectura+POO+%E2%9C%A8;Base+de+Datos+MySQL+%F0%9F%92%BE" alt="Typing SVG" />
 
